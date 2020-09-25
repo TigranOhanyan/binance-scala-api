@@ -1,6 +1,6 @@
 package com.binance.api.client.domain.general
 
-import com.binance.api.client.domain.{Price, Quantity}
+import spray.json.{DeserializationException, JsObject, JsString, JsValue, RootJsonReader}
 
 /**
   * Filters define trading rules on a symbol or an exchange. Filters come in two forms: symbol filters and exchange filters.
@@ -15,39 +15,79 @@ import com.binance.api.client.domain.{Price, Quantity}
   *
   * The MAX_ALGO_ORDERS filter defines the maximum number of "algo" orders an account is allowed to have open on a symbol. "Algo" orders are STOP_LOSS, STOP_LOSS_LIMIT, TAKE_PROFIT, and TAKE_PROFIT_LIMIT orders.
   */
-case class SymbolFilter(
-    filterType: FilterType,
-    /**
-      * Defines the minimum price/stopPrice allowed.
-      */
-    minPrice: Option[Price],
-    /**
-      * Defines the maximum price/stopPrice allowed.
-      */
-    maxPrice: Option[Price],
-    /**
-      * Defines the intervals that a price/stopPrice can be increased/decreased by.
-      */
-    tickSize: Option[String],
-    /**
-      * Defines the minimum quantity/icebergQty allowed.
-      */
-    minQty: Option[Quantity],
-    /**
-      * Defines the maximum quantity/icebergQty allowed.
-      */
-    maxQty: Option[Quantity],
-    /**
-      * Defines the intervals that a quantity/icebergQty can be increased/decreased by.
-      */
-    stepSize: Option[String],
-    /**
-      * Defines the minimum notional value allowed for an order on a symbol. An order's notional value is the price * quantity.
-      */
-    minNotional: Option[String],
-    /**
-      * MAX_NUM_ORDERS filter defines the maximum number of orders an account is allowed to have open on a symbol. Note that both "algo" orders and normal orders are counted for this filter.
-      * MAX_ALGO_ORDERS filter defines the maximum number of "algo" orders an account is allowed to have open on a symbol. "Algo" orders are STOP_LOSS, STOP_LOSS_LIMIT, TAKE_PROFIT, and TAKE_PROFIT_LIMIT orders.
-      */
-    limit: Option[Int]
-)
+
+sealed trait SymbolFilter {
+
+  def filterType: FilterType
+}
+
+object SymbolFilter {
+
+
+  /**
+   *
+   * @param minPrice Defines the maximum price/stopPrice allowed.
+   * @param maxPrice Defines the maximum price/stopPrice allowed.
+   * @param tickSize Defines the intervals that a price/stopPrice can be increased/decreased by.
+   */
+  case class PriceFilter(minPrice: BigDecimal, maxPrice: BigDecimal, tickSize: BigDecimal) extends SymbolFilter{
+    override val filterType: FilterType = FilterType.PRICE_FILTER
+  }
+
+  object PriceFilter {
+    implicit val parser: RootJsonReader[PriceFilter] = {fromJson: JsValue =>
+      fromJson.asJsObject("Invalid price filter").getFields("minPrice", "maxPrice", "tickSize") match {
+        case Seq(JsString(_minPrice), JsString(_maxPrice), JsString(_tickSize)) =>
+          PriceFilter(
+            BigDecimal(_minPrice),
+            BigDecimal(_maxPrice),
+            BigDecimal(_tickSize),
+          )
+        case _ => throw DeserializationException("Invalid lot size filter")
+      }
+    }
+  }
+
+
+
+  /**
+   *
+   * @param minQty Defines the minimum quantity/icebergQty allowed.
+   * @param maxQty Defines the maximum quantity/icebergQty allowed.
+   * @param stepSize Defines the intervals that a quantity/icebergQty can be increased/decreased by.
+   */
+  case class LotSizeFilter(minQty: BigDecimal, maxQty: BigDecimal, stepSize: BigDecimal) extends SymbolFilter{
+    override val filterType: FilterType = FilterType.PRICE_FILTER
+  }
+
+  object LotSizeFilter {
+    implicit val parser: RootJsonReader[LotSizeFilter] = {fromJson: JsValue =>
+      fromJson.asJsObject("Invalid lot size filter").getFields("minQty", "maxQty", "stepSize") match {
+        case Seq(JsString(_minQty), JsString(_maxQty), JsString(_stepSize)) =>
+          LotSizeFilter(
+            BigDecimal(_minQty),
+            BigDecimal(_maxQty),
+            BigDecimal(_stepSize),
+          )
+        case _ => throw DeserializationException("Invalid lot size filter")
+      }
+    }
+  }
+
+  case object Other extends SymbolFilter{
+    override val filterType: FilterType = FilterType.MAX_NUM_ORDERS
+  }
+
+  implicit val parser: RootJsonReader[SymbolFilter] = { fromJson =>
+    val obj: JsObject = fromJson.asJsObject("Invalid Symbol Filter")
+    val filterType: FilterType = obj.getFields("filterType") match {
+      case Seq(JsString(_filterType)) => FilterType.valueOf(_filterType)
+      case _ => throw DeserializationException("Invalid Symbol Filter!")
+    }
+    filterType match {
+      case FilterType.LOT_SIZE => LotSizeFilter.parser.read(obj)
+      case FilterType.PRICE_FILTER => PriceFilter.parser.read(obj)
+      case _ => Other
+    }
+  }
+}

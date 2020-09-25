@@ -1,6 +1,6 @@
 package com.binance.api.client.domain.general
 
-import com.binance.api.client.domain.{Instant, Symbol}
+import spray.json.{DeserializationException, JsArray, JsNumber, JsString, JsValue, RootJsonFormat, RootJsonReader}
 
 /**
   * Current exchange trading rules and symbol information.
@@ -8,11 +8,26 @@ import com.binance.api.client.domain.{Instant, Symbol}
   */
 case class ExchangeInfo(
     timezone:   String,
-    serverTime: Instant,
+    serverTime: Long,
     rateLimits: List[RateLimit],
     symbols:    List[SymbolInfo],
     exchangeFilters: List[ExchangeFilter]
 ) {
-  lazy val getSymbolInfo: Map[Symbol, SymbolInfo] =
-    symbols.map(s => s.symbol -> s)(collection.breakOut)
+  lazy val getSymbolInfo: Map[String, SymbolInfo] =
+    symbols.map(s => s.symbol -> s).toMap
+
+}
+
+object ExchangeInfo {
+
+  implicit val parser: RootJsonReader[ExchangeInfo] = { fromJson: JsValue =>
+    fromJson.asJsObject("Invalid Exchange Info!") getFields ("timezone", "serverTime", "symbols") match {
+      case Seq(JsString(timezone), JsNumber(_serverTime), JsArray(_symbols)) =>
+        val serverTime = _serverTime.toLongExact
+        val symbols = _symbols.map(SymbolInfo.parser.read).toList
+        ExchangeInfo(timezone, serverTime, List.empty[RateLimit], symbols, List.empty[ExchangeFilter])
+      case _ => throw DeserializationException("Invalid Exchange Info!")
+    }
+
+  }
 }

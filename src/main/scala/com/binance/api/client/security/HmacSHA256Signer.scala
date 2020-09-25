@@ -23,4 +23,11 @@ object HmacSHA256Signer {
     sha256_HMAC.init(secretKeySpec)
     new String(Hex.encodeHex(sha256_HMAC.doFinal(message.getBytes)))
   }
+
+  def apply(_query: Option[String],_body: Option[String], secret: String): Option[String] = (_query,_body) match {
+    case (Some(query: String), Some(body: String)) => Some(HmacSHA256Signer(query + body, secret))
+    case (_,Some(body: String)) => Some(HmacSHA256Signer(body, secret))
+    case (Some(query: String),_) => Some(HmacSHA256Signer(query, secret))
+    case _ => None
+  }
 }

@@ -1,5 +1,6 @@
 package com.binance.api.client
 
+import com.binance.api.client.domain.account.NewOrderResponse.NewOrderStdResponse
 import com.binance.api.client.domain.account._
 import com.binance.api.client.domain.account.request.{AllOrdersRequest, CancelOrderRequest, OrderRequest, OrderStatusRequest}
 import com.binance.api.client.domain.event.ListenKey
@@ -100,7 +101,7 @@ trait BinanceApiAsyncRestClient {
     * Send in a new order
     *
     */
-  def newOrder(order: NewOrder): Future[NewOrderResponse]
+  def newOrder(order: NewOrder): Future[NewOrderStdResponse]
 
   /**
     * Test new order creation and signature/recvWindow long. Creates and validates a new order but does not send it into the matching engine.

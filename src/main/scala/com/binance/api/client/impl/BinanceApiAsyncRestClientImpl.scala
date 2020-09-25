@@ -5,13 +5,9 @@ import java.lang.System.currentTimeMillis
 import com.binance.api.client.BinanceApiAsyncRestClient
 import com.binance.api.client.constant.BinanceApiConstants.DEFAULT_RECEIVING_WINDOW
 import com.binance.api.client.domain._
+import com.binance.api.client.domain.account.NewOrderResponse.NewOrderStdResponse
 import com.binance.api.client.domain.account._
-import com.binance.api.client.domain.account.request.{
-  AllOrdersRequest,
-  CancelOrderRequest,
-  OrderRequest,
-  OrderStatusRequest
-}
+import com.binance.api.client.domain.account.request.{AllOrdersRequest, CancelOrderRequest, OrderRequest, OrderStatusRequest}
 import com.binance.api.client.domain.event.ListenKey
 import com.binance.api.client.domain.general.{ExchangeInfo, ServerTime}
 import com.binance.api.client.domain.market._
@@ -124,37 +120,37 @@ class BinanceApiAsyncRestClientImpl(service: BinanceApiService)(implicit ex: Exe
   override def getBookTickers: Future[List[BookTicker]] =
     RunRequest[List[BookTicker]](service.getBookTickers)
 
-  override def newOrder(order: NewOrder): Future[NewOrderResponse] =
-    RunRequest[NewOrderResponse](
-      service.newOrder(
-        AsJava(order.symbol),
-        AsJava(order.side),
-        AsJava(order.`type`),
-        AsJava(order.timeInForce),
-        AsJava(order.quantity),
-        AsJava(order.price),
-        AsJava(order.stopPrice),
-        AsJava(order.icebergQty),
-        AsJava(order.recvWindow),
-        AsJava(order.timestamp)
-      )
-    )
+  override def newOrder(order: NewOrder): Future[NewOrderStdResponse] = ???
+//    RunRequest[NewOrderStdResponse](
+//      service.newOrder(
+//        AsJava(order.symbol),
+//        AsJava(order.side),
+//        AsJava(order.`type`),
+//        AsJava(order.timeInForce),
+//        AsJava(order.quantity),
+//        AsJava(order.price),
+//        AsJava(order.stopPrice),
+//        AsJava(order.icebergQty),
+//        AsJava(order.recvWindow),
+//        AsJava(order.timestamp)
+//      )
+//    )
 
-  override def newOrderTest(in: NewOrder): Future[Unit] =
-    RunRequest[Unit](
-      service.newOrderTest(
-        AsJava(in.symbol),
-        AsJava(in.side),
-        AsJava(in.`type`),
-        AsJava(in.timeInForce),
-        AsJava(in.quantity),
-        AsJava(in.price),
-        AsJava(in.stopPrice),
-        AsJava(in.icebergQty),
-        AsJava(in.recvWindow),
-        AsJava(in.timestamp)
-      )
-    )
+  override def newOrderTest(in: NewOrder): Future[Unit] = ???
+//    RunRequest[Unit](
+//      service.newOrderTest(
+//        AsJava(in.symbol),
+//        AsJava(in.side),
+//        AsJava(in.`type`),
+//        AsJava(in.timeInForce),
+//        AsJava(in.quantity),
+//        AsJava(in.price),
+//        AsJava(in.stopPrice),
+//        AsJava(in.icebergQty),
+//        AsJava(in.recvWindow),
+//        AsJava(in.timestamp)
+//      )
+//    )
 
   override def getOrderStatus(in: OrderStatusRequest): Future[Order] =
     RunRequest[Order](

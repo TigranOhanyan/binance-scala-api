@@ -3,6 +3,7 @@ package com.binance.api.client.json
 import com.binance.api.client.domain.account._
 import com.binance.api.client.domain.event._
 import com.binance.api.client.domain._
+import com.binance.api.client.domain.account.NewOrderResponse.NewOrderAckResponse
 import com.binance.api.client.domain.general._
 import com.binance.api.client.domain.market._
 import io.circe.{Decoder, DecodingFailure, HCursor, JsonObject}
@@ -45,7 +46,7 @@ object Decoders {
   implicit lazy val ExchangeInfoDecoder:     Decoder[ExchangeInfo]     = deriveDecoder[ExchangeInfo]
   implicit lazy val ListenKeyDecoder:        Decoder[ListenKey]        = deriveDecoder[ListenKey]
   implicit lazy val MyTradeDecoder:          Decoder[MyTrade]          = deriveDecoder[MyTrade]
-  implicit lazy val NewOrderResponseDecoder: Decoder[NewOrderResponse] = deriveDecoder[NewOrderResponse]
+  implicit lazy val NewOrderResponseDecoder: Decoder[NewOrderAckResponse] = deriveDecoder[NewOrderAckResponse]
   implicit lazy val OrderBookDecoder:        Decoder[OrderBook]        = deriveDecoder[OrderBook]
   implicit lazy val OrderDecoder:            Decoder[Order]            = deriveDecoder[Order]
   implicit lazy val RateLimitDecoder:        Decoder[RateLimit]        = deriveDecoder[RateLimit]
