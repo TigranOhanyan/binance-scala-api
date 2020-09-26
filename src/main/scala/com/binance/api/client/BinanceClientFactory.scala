@@ -31,10 +31,10 @@ class BinanceClientFactory(
   /**
    * Creates a new asynchronous/non-blocking REST client.
    */
-  def newAsyncRestClient: BinanceREST = if (simulation) {
-    new BinanceSimulationREST(simulationPriceFile, simulationOrderFile)
+  def newAsyncRestClient: BinanceClientREST = if (simulation) {
+    new BinanceClientRESTSimulation(simulationPriceFile, simulationOrderFile)
   } else {
-    new BinanceClientREST(apiKey, secret)
+    new BinanceClientRESTImpl(apiKey, secret)
   }
 
   /**
@@ -49,7 +49,7 @@ object BinanceClientFactory{
     val secretKey: String = conf.getString("secretKey")
     implicit val timeout: FiniteDuration = Duration.fromNanos(conf.getDuration("timeout").toNanos)
     val simulation: Boolean = conf.getBoolean("simulation")
-    val simulationPriceFile: File = new File(conf.getString("price"))
+    val simulationPriceFile: File = new File(conf.getString("prices"))
     val simulationOrderFile: File = new File(conf.getString("orders"))
     new BinanceClientFactory(apiKey, secretKey, simulation, simulationPriceFile, simulationOrderFile)
   }

@@ -105,12 +105,12 @@ object NewOrderResponse {
                                   orderStatus: OrderStatus,
                                   orderType: OrderType,
                                   orderSide: OrderSide,
+                                  payload: String,
                                 ) extends NewOrderResponse
 
   object NewOrderStdResponse {
 
     implicit val parser: RootJsonReader[NewOrderStdResponse] = { fromJson: JsValue =>
-      println(fromJson.prettyPrint)
       fromJson.asJsObject("Invalid Order Response").getFields(
         "symbol",
         "orderId",
@@ -146,7 +146,7 @@ object NewOrderResponse {
           val orderStatus: OrderStatus = OrderStatus.valueOf(_orderStatus)
           val orderType: OrderType = OrderType.valueOf(_orderType)
           val orderSide: OrderSide = OrderSide.valueOf(_orderSide)
-          NewOrderStdResponse(symbol,orderId,clientOrderId,transactTime,price,origQty,executedQty,cumulativeQuoteQty,orderStatus,orderType,orderSide)
+          NewOrderStdResponse(symbol,orderId,clientOrderId,transactTime,price,origQty,executedQty,cumulativeQuoteQty,orderStatus,orderType,orderSide, fromJson.prettyPrint)
         case _ => throw DeserializationException("Invalid Order Response!")
       }
 

@@ -1,28 +1,32 @@
 package com.binance.api.client
-import java.io.{BufferedReader, BufferedWriter, File, FileReader, FileWriter}
+import java.io._
 
 import akka.Done
 import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
-import com.binance.api.client.BinanceSimulationREST.TickerEnd
-import com.binance.api.client.domain.{OrderSide, OrderStatus, OrderType}
+import com.binance.api.client.BinanceClientRESTSimulation.TickerEnd
 import com.binance.api.client.domain.account.NewOrderResponse.NewOrderStdResponse
 import com.binance.api.client.domain.account.{NewOrder, NewOrderResponse}
 import com.binance.api.client.domain.general.{ExchangeInfo, ServerTime}
 import com.binance.api.client.domain.market.{AllBookTicker, BookTicker}
+import com.binance.api.client.domain.{OrderSide, OrderStatus}
 
 import scala.concurrent.Future
 import scala.util.Random
 
-class BinanceSimulationREST(priceFile: File, ordersFile: File) extends BinanceREST {
+class BinanceClientRESTSimulation(priceFile: File, ordersFile: File) extends BinanceClientREST {
 
+  ordersFile.createNewFile()
   val pr: BufferedReader = new BufferedReader(new FileReader(priceFile))
   val or: BufferedWriter = new BufferedWriter(new FileWriter(ordersFile))
+  or.write(BinanceClientRESTSimulation.orderFileHeader)
+  or.write("\n")
+
   var _tickers: Option[AllBookTicker] = None
 
   override def getBookTickers(implicit um: FromEntityUnmarshaller[AllBookTicker]): Future[AllBookTicker] = {
     Option(pr.readLine()) match {
       case Some(line: String) =>
-        val tickers: AllBookTicker = BinanceSimulationREST.parseTickers(line)
+        val tickers: AllBookTicker = BinanceClientRESTSimulation.parseTickers(line)
         _tickers = Some(tickers)
         Future.successful(tickers)
       case _ => Future.failed(TickerEnd)
@@ -64,9 +68,10 @@ class BinanceSimulationREST(priceFile: File, ordersFile: File) extends BinanceRE
           cumulativeQuoteQty = order.quantity * executionPrice,
           OrderStatus.FILLED,
           order.orderType,
-          order.orderSide
+          order.orderSide,
+          ""
         )
-        or.write(BinanceSimulationREST.serializeTrade(response))
+        or.write(BinanceClientRESTSimulation.serializeTrade(response))
         or.write("\n")
         Future.successful(response)
       case _ => Future.failed(TickerEnd)
@@ -80,7 +85,7 @@ class BinanceSimulationREST(priceFile: File, ordersFile: File) extends BinanceRE
   }
 }
 
-object BinanceSimulationREST {
+object BinanceClientRESTSimulation {
 
   val simulationSymbol: String = "SIMULATION"
 
@@ -88,16 +93,16 @@ object BinanceSimulationREST {
     case Array(_mid: String) =>
       val mid: BigDecimal = BigDecimal(_mid)
       BookTicker(simulationSymbol, mid, BigDecimal(0.0), mid, BigDecimal(0.0))
-    case _ => throw InvalidTickerEnd
+    case _ => throw InvalidTicker
   }
 
   def parseTickers(line: String): AllBookTicker = AllBookTicker(List(parseTicker(line)))
 
   def serializeTrade(orderResponse: NewOrderStdResponse): String = {
     Array(
-      s"orderResponse.orderId",
+      s"${orderResponse.orderId}",
       orderResponse.clientOrderId,
-      s"orderResponse.transactTime",
+      s"${orderResponse.transactTime}",
       orderResponse.symbol,
       orderResponse.orderSide.name(),
       orderResponse.orderStatus.name(),
@@ -109,7 +114,22 @@ object BinanceSimulationREST {
     ).mkString(",")
   }
 
+  val orderFileHeader: String = Array(
+    "orderId",
+    "clientOrderId",
+    "timestamp",
+    "symbol",
+    "side",
+    "status",
+    "type",
+    "origQty",
+    "executedQty",
+    "price",
+    "cumulativeQuoteQty",
+  ).mkString(",")
+
+
   object TickerEnd extends RuntimeException("Ticker END")
-  object InvalidTickerEnd extends RuntimeException("Invalid ticker from csv line!")
+  object InvalidTicker extends RuntimeException("Invalid ticker from csv line!")
 
 }

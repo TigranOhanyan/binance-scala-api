@@ -6,15 +6,18 @@ import spray.json.{DeserializationException, JsArray, JsBoolean, JsNumber, JsStr
 /**
   * Symbol information (base/quote).
   */
-case class SymbolInfo(symbol:             String,
-                      status:             SymbolStatus,
-                      baseAsset:          String,
-                      baseAssetPrecision: Int,
-                      quoteAsset:         String,
-                      quotePrecision:     Int,
-                      orderTypes:         List[OrderType],
-                      icebergAllowed:     Boolean,
-                      filters:            List[SymbolFilter]
+case class SymbolInfo(
+                       symbol:                   String,
+                       status:                   SymbolStatus,
+                       baseAsset:                String,
+                       baseAssetPrecision:       Int,
+                       baseCommissionPrecision:  Int,
+                       quoteAsset:               String,
+                       quotePrecision:           Int,
+                       quoteCommissionPrecision: Int,
+                       orderTypes:               List[OrderType],
+                       icebergAllowed:           Boolean,
+                       filters:                  List[SymbolFilter]
                      ) {
 
   /**
@@ -32,13 +35,15 @@ object SymbolInfo {
       "status",
       "baseAsset",
       "baseAssetPrecision",
+      "baseCommissionPrecision",
       "quoteAsset",
       "quotePrecision",
+      "quoteCommissionPrecision",
       "orderTypes",
       "icebergAllowed",
       "filters"
     ) match {
-      case Seq(JsString(symbol), JsString(_status), JsString(baseAsset), JsNumber(baseAssetPrecision), JsString(quoteAsset), JsNumber(quoteAssetPrecision), JsArray(_orderTypes), JsBoolean(iceberg), JsArray(_filters)) =>
+      case Seq(JsString(symbol), JsString(_status), JsString(baseAsset), JsNumber(baseAssetPrecision), JsNumber(baseCommissionPrecision), JsString(quoteAsset), JsNumber(quoteAssetPrecision), JsNumber(quoteCommissionPrecision), JsArray(_orderTypes), JsBoolean(iceberg), JsArray(_filters)) =>
         val orderTypes: List[OrderType] = _orderTypes.map(_.asInstanceOf[JsString]).map(js => OrderType.valueOf(js.value)).toList
         val filters: List[SymbolFilter] = _filters.map(SymbolFilter.parser.read).toList.filterNot(_ == SymbolFilter.Other)
         SymbolInfo(
@@ -46,8 +51,10 @@ object SymbolInfo {
           SymbolStatus.valueOf(_status),
           baseAsset,
           baseAssetPrecision.toIntExact,
+          baseCommissionPrecision.toIntExact,
           quoteAsset,
           quoteAssetPrecision.toIntExact,
+          quoteCommissionPrecision.toIntExact,
           orderTypes,
           iceberg,
           filters

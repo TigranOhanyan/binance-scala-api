@@ -39,8 +39,10 @@ class ExchangeInfoDeserializerTest {
     "status": "TRADING",
     "baseAsset": "ETH",
     "baseAssetPrecision": 8,
+    "baseCommissionPrecision": 8,
     "quoteAsset": "BTC",
     "quotePrecision": 8,
+    "quoteCommissionPrecision": 8,
     "orderTypes": ["LIMIT", "MARKET"],
     "icebergAllowed": false,
     "filters": [{
@@ -78,8 +80,10 @@ class ExchangeInfoDeserializerTest {
             status = SymbolStatus.TRADING,
             baseAsset = "ETH",
             baseAssetPrecision = 8,
+            baseCommissionPrecision = 8,
             quoteAsset = "BTC",
             quotePrecision = 8,
+            quoteCommissionPrecision = 8,
             orderTypes = List(OrderType.LIMIT, OrderType.MARKET),
             icebergAllowed = false,
             filters = List(

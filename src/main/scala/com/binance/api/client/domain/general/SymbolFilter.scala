@@ -32,6 +32,14 @@ object SymbolFilter {
    */
   case class PriceFilter(minPrice: BigDecimal, maxPrice: BigDecimal, tickSize: BigDecimal) extends SymbolFilter{
     override val filterType: FilterType = FilterType.PRICE_FILTER
+
+    def validated(price: BigDecimal): Option[BigDecimal] = {
+      val newPrice: BigDecimal = price.quot(tickSize) * tickSize
+      Some(newPrice).filter(isValid)
+    }
+
+    def isValid(value: BigDecimal): Boolean = value >= minPrice && value <= maxPrice
+
   }
 
   object PriceFilter {
@@ -58,6 +66,18 @@ object SymbolFilter {
    */
   case class LotSizeFilter(minQty: BigDecimal, maxQty: BigDecimal, stepSize: BigDecimal) extends SymbolFilter{
     override val filterType: FilterType = FilterType.PRICE_FILTER
+
+    def validated(value: BigDecimal): Option[BigDecimal] = {
+      val newValue: BigDecimal = value.quot(stepSize) * stepSize
+      Some(newValue).filter(value => isValid(value.abs))
+    }
+
+    def absValidated(value: BigDecimal): Option[BigDecimal] = {
+      val newValue: BigDecimal = value.abs.quot(stepSize) * stepSize
+      Some(newValue).filter(isValid)
+    }
+
+    def isValid(value: BigDecimal): Boolean = value >= minQty && value <= maxQty
   }
 
   object LotSizeFilter {
