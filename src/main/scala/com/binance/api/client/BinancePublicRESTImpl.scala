@@ -75,10 +75,10 @@ trait BinancePublicRESTImpl extends DefaultMarshalling{
 
 object BinancePublicRESTImpl{
 
-  def apply(implicit system: ActorSystem, timeout: FiniteDuration): BinancePublicRESTImpl = new BinancePublicRESTImpl{
+  def apply(implicit _system: ActorSystem,_timeout: FiniteDuration): BinancePublicRESTImpl = new BinancePublicRESTImpl{
 
-    override implicit val system: ActorSystem = system
+    override implicit val system: ActorSystem = _system
 
-    override implicit val timeout: FiniteDuration = timeout
+    override implicit val timeout: FiniteDuration = _timeout
   }
 }

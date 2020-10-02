@@ -33,10 +33,11 @@ object SymbolFilter {
   case class PriceFilter(minPrice: BigDecimal, maxPrice: BigDecimal, tickSize: BigDecimal) extends SymbolFilter{
     override val filterType: FilterType = FilterType.PRICE_FILTER
 
-    def validated(price: BigDecimal): Option[BigDecimal] = {
-      val newPrice: BigDecimal = price.quot(tickSize) * tickSize
-      Some(newPrice).filter(isValid)
-    }
+    def validated(price: BigDecimal): BigDecimal =
+      BigDecimal((price.quot(tickSize) * tickSize).bigDecimal.stripTrailingZeros())
+
+    def validatedOption(price: BigDecimal): Option[BigDecimal] =
+      Some(validated(price)).filter(isValid)
 
     def isValid(value: BigDecimal): Boolean = value >= minPrice && value <= maxPrice
 
@@ -65,17 +66,21 @@ object SymbolFilter {
    * @param stepSize Defines the intervals that a quantity/icebergQty can be increased/decreased by.
    */
   case class LotSizeFilter(minQty: BigDecimal, maxQty: BigDecimal, stepSize: BigDecimal) extends SymbolFilter{
+
     override val filterType: FilterType = FilterType.PRICE_FILTER
 
-    def validated(value: BigDecimal): Option[BigDecimal] = {
-      val newValue: BigDecimal = value.quot(stepSize) * stepSize
-      Some(newValue).filter(value => isValid(value.abs))
-    }
+    def validated(value: BigDecimal): BigDecimal =
+      BigDecimal((value.quot(stepSize) * stepSize).bigDecimal.stripTrailingZeros())
 
-    def absValidated(value: BigDecimal): Option[BigDecimal] = {
-      val newValue: BigDecimal = value.abs.quot(stepSize) * stepSize
-      Some(newValue).filter(isValid)
-    }
+    def absValidated(value: BigDecimal): BigDecimal =
+      BigDecimal((value.abs.quot(stepSize) * stepSize).bigDecimal.stripTrailingZeros())
+
+    def validatedOption(value: BigDecimal): Option[BigDecimal] =
+      Some(validated(value)).filter(value => isValid(value.abs))
+
+    def absValidatedOption(value: BigDecimal): Option[BigDecimal] =
+      Some(absValidated(value)).filter(isValid)
+
 
     def isValid(value: BigDecimal): Boolean = value >= minQty && value <= maxQty
   }
@@ -87,7 +92,7 @@ object SymbolFilter {
           LotSizeFilter(
             BigDecimal(_minQty),
             BigDecimal(_maxQty),
-            BigDecimal(_stepSize),
+            BigDecimal(_stepSize).round(),
           )
         case _ => throw DeserializationException("Invalid lot size filter")
       }
